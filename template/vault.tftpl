@@ -1,0 +1,33 @@
+terraform {
+  cloud {
+    organization = "${tfc_organization_name}"
+    hostname     = "${tfc_hostname}" # Optional; defaults to app.terraform.io
+
+    workspaces {
+      tags = ["${tfc_workspace_tag}"]
+    }
+  }
+
+  required_providers {
+    vault = {
+      source  = "hashicorp/vault"
+      version = "~> 3.0"
+    }
+  }
+}
+
+provider "vault" {
+  address   = "${vault_address}"
+  namespace = "${vault_namespace}"
+}
+
+data "vault_kv_secret_v2" "secret" {
+  mount = "secret"
+  name  = "db-pass"
+}
+
+output "secret" {
+  value = {
+    secret = nonsensitive(data.vault_kv_secret_v2.secret.data)
+  }
+}

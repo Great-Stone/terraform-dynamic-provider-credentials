@@ -1,0 +1,30 @@
+terraform {
+  cloud {
+    organization = "${tfc_organization_name}"
+    hostname     = "${tfc_hostname}" # Optional; defaults to app.terraform.io
+
+    workspaces {
+      tags = ["${tfc_workspace_tag}"]
+    }
+  }
+
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "google" {
+  project = "${gcp_project}"
+  region  = "${gcp_region}"
+}
+
+data "google_project" "project" {}
+
+output "project" {
+  value = {
+    project = data.google_project.project
+  }
+}

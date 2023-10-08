@@ -1,0 +1,44 @@
+terraform {
+  cloud {
+    organization = "${tfc_organization_name}"
+    hostname     = "${tfc_hostname}" # Optional; defaults to app.terraform.io
+
+    workspaces {
+      tags = ["${tfc_workspace_tag}"]
+    }
+  }
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = "${aws_region}"
+}
+
+data "aws_caller_identity" "current" {}
+
+resource "terraform_data" "check_env" {
+  triggers_replace = [
+    timestamp()
+  ]
+  provisioner "local-exec" {
+    command = "env | grep AWS"
+  }
+  provisioner "local-exec" {
+    command = "cat $AWS_SHARED_CREDENTIALS_FILE"
+  }
+  provisioner "local-exec" {
+    command = "cat /home/tfc-agent/.tfc-agent/component/terraform/runs/run-*/tfc-aws-token"
+  }
+}
+
+output "identity" {
+  value = {
+    secret = data.aws_caller_identity.current
+  }
+}

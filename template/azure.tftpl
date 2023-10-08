@@ -1,0 +1,33 @@
+terraform {
+  cloud {
+    organization = "${tfc_organization_name}"
+    hostname     = "${tfc_hostname}" # Optional; defaults to app.terraform.io
+
+    workspaces {
+      tags = ["${tfc_workspace_tag}"]
+    }
+  }
+
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+data "azurerm_subscription" "current" {}
+
+output "subscription" {
+  value = {
+    subscription = data.azurerm_subscription.current
+  }
+}
